@@ -1,9 +1,22 @@
+import { PrismaClient } from "@prisma/client"
 import * as trpc from "@trpc/server"
 import * as trpcNext from "@trpc/server/adapters/next"
+import { z } from "zod"
 
-export const appRouter = trpc.router().query('hello', {
-    resolve() {
-        return `Hello!`
+const prisma = new PrismaClient()
+
+export const appRouter = trpc.router().query('alias-check', {
+    input: z.object({
+        name: z.string()
+    }),
+    async resolve({ input }) {
+        const count = await prisma.link.count({
+            where: {
+                alias: input.name
+            }
+        })
+
+        return `Hello ${input.name}! Count: ${count}`
     }
 })
 

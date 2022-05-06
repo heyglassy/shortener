@@ -3,6 +3,8 @@ import { useState } from "react";
 import type { Form } from "../types/form";
 import classNames from "classnames";
 import { nanoid } from "nanoid";
+import { trpc } from "../utils/trpc";
+import debounce from "lodash/debounce";
 
 const Home: NextPage = () => {
   const [form, setForm] = useState<Form>({ alias: "", link: "", valid: false });
@@ -14,8 +16,9 @@ const Home: NextPage = () => {
   //   "text-red-500": !form.valid && parsedDate?.length > 0,
   // });
 
-  const aliasCheck = () => { //called after debounce or random
-
+  const res = trpc.useQuery(['alias-check', { name: form.alias }])
+  if (res.isFetched) {
+    console.log(res.data)
   }
 
   return (
@@ -31,7 +34,13 @@ const Home: NextPage = () => {
           <span className="font-medium mr-2">https://ping.gg/</span>
           <input
             type="text"
-            onChange={(e) => setForm({ ...form, alias: e.target.value })}
+            onChange={(e) => {
+              setForm({
+                ...form,
+                alias: e.target.value,
+              })
+              debounce(res.refetch, 100)
+            }}
             minLength={1}
             placeholder="theo"
             className={input}
@@ -42,9 +51,12 @@ const Home: NextPage = () => {
             value="Random"
             className="rounded bg-pink-500 py-1.5 px-1 font-bold cursor-pointer ml-2"
             onClick={() => {
+              const alias = nanoid()
               setForm({
-                ...form, alias: nanoid(),
+                ...form,
+                alias: alias,
               })
+              res.refetch()
             }}
           />
         </div>
