@@ -1,37 +1,41 @@
 import type { NextPage } from "next";
 import { useState } from "react";
-import type { Form } from "../types/form";
 import classNames from "classnames";
 import { nanoid } from "nanoid";
 import { trpc } from "../utils/trpc";
 import debounce from "lodash/debounce";
 
+type Form = {
+  alias: string;
+  link: string;
+}
+
 const Home: NextPage = () => {
-  const [form, setForm] = useState<Form>({ alias: "", link: "", valid: false });
+  const [form, setForm] = useState<Form>({ alias: "", link: "" });
+
+  const aliasCheck = trpc.useQuery(['alias-check', { name: form.alias }])
 
   const input =
     "text-black mt-1 mb-1 px-3 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 block w-full rounded-md sm:text-sm focus:ring-1";
-  // const dateInput = classNames(input, {
-  //   "border-red-500": !form.valid && parsedDate?.length > 0,
-  //   "text-red-500": !form.valid && parsedDate?.length > 0,
-  // });
 
-  const res = trpc.useQuery(['alias-check', { name: form.alias }])
-  if (res.isFetched) {
-    console.log(res.data)
-  }
+  const dateInput = classNames(input, {
+    "border-red-500": aliasCheck.isFetched && aliasCheck.data!.count > 0,
+    "text-red-500": aliasCheck.isFetched && aliasCheck.data!.count > 0,
+  });
+
+  const url = process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : 'http://localhost:3000'
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-950 text-white">
       <form
         onSubmit={(e) => {
-          // e.preventDefault();
-          // form.valid && router.push(`/countdown/${createLink(form)}`);
+          e.preventDefault();
+          console.log(form);
         }}
         className="flex flex-col justify-center h-screen sm:w-2/3 md:w-1/2 lg:w-1/3"
       >
         <div className="flex items-center">
-          <span className="font-medium mr-2">https://ping.gg/</span>
+          <span className="font-medium mr-2">{url}/</span>
           <input
             type="text"
             onChange={(e) => {
@@ -39,11 +43,11 @@ const Home: NextPage = () => {
                 ...form,
                 alias: e.target.value,
               })
-              debounce(res.refetch, 100)
+              debounce(aliasCheck.refetch, 100)
             }}
             minLength={1}
-            placeholder="theo"
-            className={input}
+            placeholder="rothaniel"
+            className={dateInput}
             value={form.alias}
           />
           <input
@@ -56,7 +60,7 @@ const Home: NextPage = () => {
                 ...form,
                 alias: alias,
               })
-              res.refetch()
+              aliasCheck.refetch()
             }}
           />
         </div>
@@ -74,6 +78,7 @@ const Home: NextPage = () => {
           type="submit"
           value="Create"
           className="rounded bg-pink-500 p-1 font-bold cursor-pointer mt-1"
+          disabled={aliasCheck.isFetched && aliasCheck.data!.count > 0}
         />
       </form>
     </div>

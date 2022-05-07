@@ -16,7 +16,7 @@ export const appRouter = trpc.router().query('alias-check', {
             }
         })
 
-        return `Hello ${input.name}! Count: ${count}`
+        return { count }
     }
 })
 
