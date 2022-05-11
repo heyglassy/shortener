@@ -4,6 +4,7 @@ import classNames from "classnames";
 import { nanoid } from "nanoid";
 import { trpc } from "../utils/trpc";
 import debounce from "lodash/debounce";
+import copy from "copy-to-clipboard"
 
 type Form = {
   alias: string;
@@ -13,7 +14,8 @@ type Form = {
 const Home: NextPage = () => {
   const [form, setForm] = useState<Form>({ alias: "", link: "" });
 
-  const aliasCheck = trpc.useQuery(['alias-check', { name: form.alias }])
+  const aliasCheck = trpc.useQuery(['alias-check', { name: form.alias }], { enabled: false })
+  const createAlias = trpc.useMutation(['create-alias'])
 
   const input =
     "text-black mt-1 mb-1 px-3 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 block w-full rounded-md sm:text-sm focus:ring-1";
@@ -25,17 +27,48 @@ const Home: NextPage = () => {
 
   const url = process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : 'http://localhost:3000'
 
+  if (createAlias.status === 'success') {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen bg-gray-950 text-white">
+        <div className="flex justify-center items-center">
+          <h1>{`${url}/${form.alias}`}</h1>
+          <input
+            type="button"
+            value="Copy Link"
+            className="rounded bg-pink-500 py-1.5 px-1 font-bold cursor-pointer ml-2"
+            onClick={() => {
+              copy(`${url}/link/${form.alias}`)
+            }}
+          />
+        </div>
+        <input
+          type="button"
+          value="Reset"
+          className="rounded bg-pink-500 py-1.5 px-1 font-bold cursor-pointer m-5"
+          onClick={() => {
+            createAlias.reset()
+            setForm({ alias: "", link: "" })
+          }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="flex justify-center items-center h-screen bg-gray-950 text-white">
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          console.log(form);
+          const encodedAlias = encodeURI(form.alias)
+          createAlias.mutate({
+            alias: encodedAlias,
+            link: form.link
+          })
         }}
         className="flex flex-col justify-center h-screen sm:w-2/3 md:w-1/2 lg:w-1/3"
       >
         <div className="flex items-center">
-          <span className="font-medium mr-2">{url}/</span>
+          <span className="font-medium mr-2">{url}/link/</span>
           <input
             type="text"
             onChange={(e) => {
@@ -49,6 +82,9 @@ const Home: NextPage = () => {
             placeholder="rothaniel"
             className={dateInput}
             value={form.alias}
+            pattern={"^[-a-zA-Z0-9]+$"}
+            title="Only alphanumeric characters and hypens are allowed. No spaces."
+            required
           />
           <input
             type="button"
