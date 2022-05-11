@@ -1,30 +1,27 @@
 import { GetServerSideProps } from "next"
+import { getUrl } from "../../utils/url"
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
 
-    const url = process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : 'http://localhost:3000'
+    const url = getUrl();
 
     const linkReq = await fetch(`${url}/api/link`, {
         method: "POST",
         body: String(context.query.link!) //????
     })
 
-    const link = await linkReq.json()
+    const data = await linkReq.json()
 
     return {
         redirect: {
-            destination: link.link,
+            destination: data.link,
             permanent: false
         }
     }
 }
 
 const Link = () => {
-    return (
-        <div>
-            <h1>ree</h1>
-        </div>
-    )
+    return
 }
 
 export default Link 

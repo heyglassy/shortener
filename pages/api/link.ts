@@ -5,15 +5,15 @@ const prisma = new PrismaClient()
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     try {
-        const link = await prisma.link.findUnique({
+        const data = await prisma.link.findUnique({
             where: {
                 alias: req.body
             }
         })
 
-        if (link) {
+        if (data) {
             res.setHeader('Cache-Control', 's-maxage=2592000000')
-            res.status(200).json({ link: link.link })
+            res.status(200).json({ link: data.link })
         } else {
             res.status(200).json({ link: "/" })
         }

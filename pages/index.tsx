@@ -5,6 +5,7 @@ import { nanoid } from "nanoid";
 import { trpc } from "../utils/trpc";
 import debounce from "lodash/debounce";
 import copy from "copy-to-clipboard"
+import { getUrl } from "../utils/url";
 
 type Form = {
   alias: string;
@@ -25,7 +26,7 @@ const Home: NextPage = () => {
     "text-red-500": aliasCheck.isFetched && aliasCheck.data!.count > 0,
   });
 
-  const url = process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : 'http://localhost:3000'
+  const url = getUrl()
 
   if (createAlias.status === 'success') {
     return (
