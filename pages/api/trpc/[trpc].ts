@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import * as trpc from "@trpc/server"
 import * as trpcNext from "@trpc/server/adapters/next"
-import { link } from "fs"
 import { z } from "zod"
 
 const prisma = new PrismaClient()
