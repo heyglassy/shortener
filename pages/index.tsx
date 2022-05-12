@@ -1,4 +1,4 @@
-import type { NextPage } from "next";
+import type { GetStaticProps, InferGetStaticPropsType, NextPage } from "next";
 import { useState } from "react";
 import classNames from "classnames";
 import { nanoid } from "nanoid";
@@ -12,7 +12,22 @@ type Form = {
   link: string;
 }
 
-const Home: NextPage = () => {
+export const getStaticProps: GetStaticProps = async (context) => {
+
+  function getBaseUrl() {
+    if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`; // SSR should use vercel url
+
+    return `http://localhost:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
+  }
+
+  return {
+    props: {
+      url: getBaseUrl()
+    }
+  }
+}
+
+const Home: NextPage = ({ url }: InferGetStaticPropsType<typeof getStaticProps>) => {
   const [form, setForm] = useState<Form>({ alias: "", link: "" });
 
   const aliasCheck = trpc.useQuery(['alias-check', { name: form.alias }], { enabled: false })
@@ -26,7 +41,6 @@ const Home: NextPage = () => {
     "text-red-500": aliasCheck.isFetched && aliasCheck.data!.count > 0,
   });
 
-  const url = getUrl()
 
   if (createAlias.status === 'success') {
     return (
